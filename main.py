@@ -1,5 +1,3 @@
-import copy
-
 import torch
 import tqdm
 from torch.utils.data import DataLoader
@@ -34,10 +32,10 @@ tb_log_freq = 5
 # Training hyper parameters.
 init_lr = 0.001
 base_lr = 0.01
-# momentum = 0.9
-# weight_decay = 5.0e-4
-num_epochs = 100
-batch_size = 64
+momentum = 0.9
+weight_decay = 5.0e-4
+num_epochs = 300
+batch_size = 128
 seed = 42
 
 np.random.seed(seed)
@@ -75,9 +73,29 @@ darknet.features = torch.nn.DataParallel(darknet.features)
 net = YOLOv1(darknet.features).to(device)
 net.conv_layers = torch.nn.DataParallel(net.conv_layers)
 
+accumulate = max(round(64 / batch_size), 1)
+params = {}
+params['weight_decay'] = weight_decay
+params['weight_decay'] *= batch_size * accumulate / 64
+
+pg0, pg1, pg2 = [], [], []
+for k, v in net.named_modules():
+    if hasattr(v, 'bias') and isinstance(v.bias, torch.nn.Parameter):
+        pg2.append(v.bias)
+    if isinstance(v, torch.nn.BatchNorm2d):
+        pg0.append(v.weight)
+    elif hasattr(v, 'weight') and isinstance(v.weight, torch.nn.Parameter):
+        pg1.append(v.weight)
+
+optimizer = torch.optim.SGD(pg0, lr=init_lr, momentum=momentum, nesterov=True)
+
+optimizer.add_param_group({'params': pg1, 'weight_decay': params['weight_decay']})
+optimizer.add_param_group({'params': pg2})
+
+
 # Setup loss and optimizer.
 criterion = Loss(feature_size=net.feature_size)
-optimizer = torch.optim.SGD(net.parameters(), lr=init_lr)  # , momentum=momentum, weight_decay=weight_decay)
+# optimizer = torch.optim.SGD(net.parameters(), lr=init_lr, momentum=momentum, weight_decay=weight_decay)
 
 # Load Pascal-VOC dataset.
 with open(f'{base_dir}/{train_files}') as f:
@@ -88,7 +106,7 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, nu
 with open(f'{base_dir}/{test_files}') as f:
     test_names = f.readlines()
 test_dataset = VOCDataset(False, file_names=test_names, base_dir=base_dir)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+test_loader = DataLoader(test_dataset, batch_size=batch_size // 2, shuffle=False, num_workers=4)
 
 print('Number of training images: ', len(train_dataset))
 
@@ -166,3 +184,5 @@ for epoch in range(num_epochs):
     # Print.
     print('Epoch [%d/%d], Val Loss: %.4f, Best Val Loss: %.4f'
           % (epoch + 1, num_epochs, val_loss, best_val_loss))
+
+
