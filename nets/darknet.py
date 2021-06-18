@@ -27,72 +27,72 @@ class DarkNet(nn.Module):
     def _make_conv_bn_layers():
         conv = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=(7, 7), stride=2, padding=3),
-            nn.BatchNorm2d(64),
+            nn.BatchNorm2d(64, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.MaxPool2d(kernel_size=(2, 2), stride=2),
 
             nn.Conv2d(64, 192, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(192),
+            nn.BatchNorm2d(192, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.MaxPool2d(kernel_size=(2, 2), stride=2),
 
             nn.Conv2d(192, 128, kernel_size=(1, 1)),
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(128, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(128, 256, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(256, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(256, 256, kernel_size=(1, 1)),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(256, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.MaxPool2d(kernel_size=(2, 2), stride=2),
 
             nn.Conv2d(512, 256, kernel_size=(1, 1)),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(256, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 256, kernel_size=(1, 1)),
+            nn.BatchNorm2d(256, momentum=0.03, eps=1e-3),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 256, kernel_size=(1, 1)),
+            nn.BatchNorm2d(256, momentum=0.03, eps=1e-3),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(512, 256, kernel_size=(1, 1)),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Conv2d(512, 256, kernel_size=(1, 1)),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Conv2d(512, 256, kernel_size=(1, 1)),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Conv2d(256, 512, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(512, 512, kernel_size=(1, 1)),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(512, 1024, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(1024),
+            nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.MaxPool2d(kernel_size=(2, 2), stride=2),
 
             nn.Conv2d(1024, 512, kernel_size=(1, 1)),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(512, 1024, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(1024),
+            nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(1024, 512, kernel_size=(1, 1)),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(512, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(512, 1024, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(1024),
+            nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
             nn.LeakyReLU(0.1, inplace=True)
         )
         return conv
@@ -184,12 +184,7 @@ class Squeeze(nn.Module):
 
 def main():
     # Build model
-    darknet = DarkNet()
-
-    print(sum(p.numel() for p in darknet.parameters() if p.requires_grad))
-
     model = DarkNet().features
-    print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
     # Dummy image
     image = torch.randn(2, 3, 448, 448)
