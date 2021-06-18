@@ -33,17 +33,17 @@ class YOLOv1(nn.Module):
         else:
             net = nn.Sequential(
                 nn.Conv2d(1024, 1024, 3, padding=1),
-                nn.BatchNorm2d(1024),
+                nn.BatchNorm2d(1024, momentum=0.1, eps=1e-5),
                 nn.LeakyReLU(0.1, inplace=True),
                 nn.Conv2d(1024, 1024, 3, stride=2, padding=1),
-                nn.BatchNorm2d(1024),
+                nn.BatchNorm2d(1024, momentum=0.1, eps=1e-5),
                 nn.LeakyReLU(0.1),
 
                 nn.Conv2d(1024, 1024, 3, padding=1),
                 nn.BatchNorm2d(1024),
                 nn.LeakyReLU(0.1, inplace=True),
                 nn.Conv2d(1024, 1024, 3, padding=1),
-                nn.BatchNorm2d(1024),
+                nn.BatchNorm2d(1024, momentum=0.1, eps=1e-5),
                 nn.LeakyReLU(0.1, inplace=True)
             )
 
