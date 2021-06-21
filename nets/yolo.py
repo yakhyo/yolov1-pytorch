@@ -4,7 +4,7 @@ from nets.darknet import DarkNet
 
 
 class YOLOv1(nn.Module):
-    def __init__(self, features, num_bboxes=2, num_classes=20, bn=False):
+    def __init__(self, features, num_bboxes=2, num_classes=20, bn=True):
         super(YOLOv1, self).__init__()
 
         self.feature_size = 7
@@ -20,30 +20,30 @@ class YOLOv1(nn.Module):
         if bn:
             net = nn.Sequential(
                 nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
                 nn.LeakyReLU(0.1, inplace=True),
                 nn.Conv2d(1024, 1024, 3, stride=2, padding=1),
+                nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
                 nn.LeakyReLU(0.1),
 
                 nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
                 nn.LeakyReLU(0.1, inplace=True),
-                nn.Conv2d(1024, 1024, 3, padding=1),
-                nn.LeakyReLU(0.1, inplace=True)
+                # nn.Conv2d(1024, 1024, 3, padding=1),
+                # nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
+                # nn.LeakyReLU(0.1, inplace=True)
             )
 
         else:
             net = nn.Sequential(
                 nn.Conv2d(1024, 1024, 3, padding=1),
-                nn.BatchNorm2d(1024, momentum=0.1, eps=1e-5),
                 nn.LeakyReLU(0.1, inplace=True),
                 nn.Conv2d(1024, 1024, 3, stride=2, padding=1),
-                nn.BatchNorm2d(1024, momentum=0.1, eps=1e-5),
                 nn.LeakyReLU(0.1),
 
                 nn.Conv2d(1024, 1024, 3, padding=1),
-                nn.BatchNorm2d(1024),
                 nn.LeakyReLU(0.1, inplace=True),
                 nn.Conv2d(1024, 1024, 3, padding=1),
-                nn.BatchNorm2d(1024, momentum=0.1, eps=1e-5),
                 nn.LeakyReLU(0.1, inplace=True)
             )
 
@@ -54,10 +54,10 @@ class YOLOv1(nn.Module):
 
         net = nn.Sequential(
             Flatten(),
-            nn.Linear(7 * 7 * 1024, 4096),
+            nn.Linear(7 * 7 * 1024, 2048),
             nn.LeakyReLU(0.1, inplace=True),
-            # nn.Dropout(0.5, inplace=False),  # is it okay to use Dropout with BatchNorm?
-            nn.Linear(4096, s * s * (5 * b + c)),
+            #             nn.Dropout(0.5, inplace=False),  # is it okay to use Dropout with BatchNorm?
+            nn.Linear(2048, s * s * (5 * b + c)),
             nn.Sigmoid()
         )
 
