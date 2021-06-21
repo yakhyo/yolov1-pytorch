@@ -54,10 +54,10 @@ class YOLOv1(nn.Module):
 
         net = nn.Sequential(
             Flatten(),
-            nn.Linear(7 * 7 * 1024, 2048),
+            nn.Linear(7 * 7 * 1024, 2048),  # 7 * 7 * 1024, 4096
             nn.LeakyReLU(0.1, inplace=True),
             #             nn.Dropout(0.5, inplace=False),  # is it okay to use Dropout with BatchNorm?
-            nn.Linear(2048, s * s * (5 * b + c)),
+            nn.Linear(2048, s * s * (5 * b + c)),  # 4096, s * s * (5 * b + c)
             nn.Sigmoid()
         )
 
