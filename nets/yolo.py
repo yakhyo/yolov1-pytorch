@@ -19,31 +19,31 @@ class YOLOv1(nn.Module):
     def _make_conv_layers(bn):
         if bn:
             net = nn.Sequential(
-                nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), padding=1),
                 nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
                 nn.LeakyReLU(0.1, inplace=True),
-                nn.Conv2d(1024, 1024, 3, stride=2, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), stride=(2, 2), padding=1),
                 nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
-                nn.LeakyReLU(0.1),
+                nn.LeakyReLU(0.1, inplace=True),
 
-                nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), padding=1),
                 nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
                 nn.LeakyReLU(0.1, inplace=True),
-                # nn.Conv2d(1024, 1024, 3, padding=1),
-                # nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
-                # nn.LeakyReLU(0.1, inplace=True)
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), padding=1),
+                nn.BatchNorm2d(1024, momentum=0.03, eps=1e-3),
+                nn.LeakyReLU(0.1, inplace=True)
             )
 
         else:
             net = nn.Sequential(
-                nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), padding=1),
                 nn.LeakyReLU(0.1, inplace=True),
-                nn.Conv2d(1024, 1024, 3, stride=2, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), stride=(2, 2), padding=1),
                 nn.LeakyReLU(0.1),
 
-                nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), padding=1),
                 nn.LeakyReLU(0.1, inplace=True),
-                nn.Conv2d(1024, 1024, 3, padding=1),
+                nn.Conv2d(1024, 1024, kernel_size=(3, 3), padding=1),
                 nn.LeakyReLU(0.1, inplace=True)
             )
 
