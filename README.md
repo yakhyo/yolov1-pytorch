@@ -28,9 +28,14 @@ Each label consists of class and bounding box information. e.g `0001.txt` :
 * Download [this repo](https://github.com/yakhyo/YOLO2VOC) and modify `config.py` to convert `VOC` format to `YOLO` format labels
 
 
-**Train:**
-- `python main.py`
+[comment]: <> (**Train:**)
 
-**Evaluation:**
-- `python eval.py`
-- In `evaluation.py`, `im_show=False` change to `True` to see the results.
+[comment]: <> (- `python main.py`)
+
+
+[comment]: <> (**Evaluation:**)
+
+[comment]: <> (- `python eval.py`)
+
+[comment]: <> (- In `evaluation.py`, `im_show=False` change to `True` to see the results.)
+
