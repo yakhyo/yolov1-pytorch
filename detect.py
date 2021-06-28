@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 import torchvision.transforms as transforms
 
 import os
@@ -100,7 +99,7 @@ class YOLODetector:
         self.to_tensor = transforms.ToTensor()
 
         # Warm up.
-        dummy_input = Variable(torch.zeros((1, 3, 448, 448)))
+        dummy_input = torch.zeros((1, 3, 448, 448))
         dummy_input = dummy_input.cuda()
         for i in range(10):
             self.yolo(dummy_input)
@@ -121,7 +120,6 @@ class YOLODetector:
         img = (img - self.mean) / 255.0
         img = self.to_tensor(img)  # [image_size, image_size, 3] -> [3, image_size, image_size]
         img = img[None, :, :, :]  # [3, image_size, image_size] -> [1, 3, image_size, image_size]
-        img = Variable(img)
         img = img.cuda()
 
         with torch.no_grad():
