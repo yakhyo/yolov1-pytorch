@@ -27,6 +27,7 @@ Each label consists of class and bounding box information. e.g `0001.txt` :
 **How to convert `.xml` files to `.txt` format?**
 * Download [this repo](https://github.com/yakhyo/YOLO2VOC) and modify `config.py` to convert `VOC` format to `YOLO` format labels
 
+Implementation of [YOLOv1](https://arxiv.org/pdf/1506.02640.pdf) using PyTorch
 
 [comment]: <> (**Train:**)
 
