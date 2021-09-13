@@ -47,4 +47,4 @@ usage: main.py [-h] --base_dir BASE_DIR --log_dir LOG_DIR [--init_lr INIT_LR] [-
 - In `evaluation.py`, `im_show=False` change to `True` to see the results.
 
 **Detection**
-- To detect objects on image run the `detect.py` 
+- To detect objects on an image run the `detect.py` 
