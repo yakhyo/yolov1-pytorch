@@ -3,10 +3,12 @@ import torchvision.transforms as transforms
 
 import os
 import cv2
+import argparse
 import numpy as np
 
 from nets.darknet import DarkNet
 from nets.yolo import YOLOv1
+from utils.util import nms
 
 # VOC class names and BGR color.
 VOC_CLASS_BGR = {
@@ -78,13 +80,15 @@ class YOLODetector:
         self.yolo.conv_layers = torch.nn.DataParallel(self.yolo.conv_layers)
         self.yolo.load_state_dict(torch.load(model_path)['state_dict'])
         self.yolo.cuda()
+        if torch.cuda.device_count() > 1:
+            self.yolo = torch.nn.DataParallel(self.yolo)
         print("Done loading!")
 
         self.yolo.eval()
 
-        self.S = self.yolo.feature_size
-        self.B = self.yolo.num_bboxes
-        self.C = self.yolo.num_classes
+        self.S = self.yolo.module.feature_size
+        self.B = self.yolo.module.num_bboxes
+        self.C = self.yolo.module.num_classes
 
         self.class_name_list = class_name_list if (class_name_list is not None) else list(VOC_CLASS_BGR.keys())
         assert len(self.class_name_list) == self.C
@@ -145,7 +149,7 @@ class YOLODetector:
             confidences_masked = confidences_all[mask]
             class_scores_masked = class_scores_all[mask]
 
-            ids = self.nms(boxes_normalized_masked, confidences_masked)
+            ids = nms(boxes_normalized_masked, confidences_masked, nms_thresh=self.nms_thresh)
 
             boxes_normalized.append(boxes_normalized_masked[ids])
             class_labels.append(class_labels_maked[ids])
@@ -238,65 +242,23 @@ class YOLODetector:
 
         return boxes, labels, confidences, class_scores
 
-    def nms(self, boxes, scores):
-        """ Apply non maximum supression.
-        Args:
-        Returns:
-        """
-        threshold = self.nms_thresh
-
-        x1 = boxes[:, 0]  # [n,]
-        y1 = boxes[:, 1]  # [n,]
-        x2 = boxes[:, 2]  # [n,]
-        y2 = boxes[:, 3]  # [n,]
-        areas = (x2 - x1) * (y2 - y1)  # [n,]
-
-        _, ids_sorted = scores.sort(0, descending=True)  # [n,]
-        ids = []
-        while ids_sorted.numel() > 0:
-            # Assume `ids_sorted` size is [m,] in the beginning of this iter.
-
-            i = ids_sorted.item() if (ids_sorted.numel() == 1) else ids_sorted[0]
-            ids.append(i)
-
-            if ids_sorted.numel() == 1:
-                break  # If only one box is left (i.e., no box to supress), break.
-
-            inter_x1 = x1[ids_sorted[1:]].clamp(min=x1[i])  # [m-1, ]
-            inter_y1 = y1[ids_sorted[1:]].clamp(min=y1[i])  # [m-1, ]
-            inter_x2 = x2[ids_sorted[1:]].clamp(max=x2[i])  # [m-1, ]
-            inter_y2 = y2[ids_sorted[1:]].clamp(max=y2[i])  # [m-1, ]
-            inter_w = (inter_x2 - inter_x1).clamp(min=0)  # [m-1, ]
-            inter_h = (inter_y2 - inter_y1).clamp(min=0)  # [m-1, ]
-
-            inters = inter_w * inter_h  # intersections b/w/ box `i` and other boxes, sized [m-1, ].
-            unions = areas[i] + areas[ids_sorted[1:]] - inters  # unions b/w/ box `i` and other boxes, sized [m-1, ].
-            ious = inters / unions  # [m-1, ]
-
-            # Remove boxes whose IoU is higher than the threshold.
-            ids_keep = (
-                        ious <= threshold).nonzero().squeeze()  # [m-1, ]. Because `nonzero()` adds extra dimension, squeeze it.
-            if ids_keep.numel() == 0:
-                break  # If no box left, break.
-            ids_sorted = ids_sorted[ids_keep + 1]  # `+1` is needed because `ids_sorted[0] = i`.
-
-        return torch.LongTensor(ids)
-
 
 if __name__ == '__main__':
     # Paths to input/output images.
-    image_path = 'person.jpg'
-    out_path = 'result.jpg'
-    # Path to the yolo weight.
-    model_path = 'final.pth'
+    parser = argparse.ArgumentParser(description='YOLOv1 implementation using PyTorch')
+    parser.add_argument('--weight', default='weights/final.pth', help='Model path')
+    parser.add_argument('--in_path', default='../../Datasets/VOC/IMAGES/001006.jpg', help='Input image path')
+    parser.add_argument('--out_path', default='result.jpg', help='Output image path')
+
+    args = parser.parse_args()
     # GPU device on which yolo is loaded.
     gpu_id = 0
 
     # Load model.
-    yolo = YOLODetector(model_path, conf_thresh=0.1, prob_thresh=0.1, nms_thresh=0.35)
+    yolo = YOLODetector(args.weight, conf_thresh=0.1, prob_thresh=0.1, nms_thresh=0.35)
 
     # Load image.
-    image = cv2.imread(image_path)
+    image = cv2.imread(args.in_path)
 
     # Detect objects.
     boxes, class_names, probs = yolo.detect(image)
@@ -305,4 +267,4 @@ if __name__ == '__main__':
     image_boxes = visualize_boxes(image, boxes, class_names, probs)
 
     # Output detection result as an image.
-    cv2.imwrite(out_path, image_boxes)
+    cv2.imwrite(args.out_path, image_boxes)

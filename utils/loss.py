@@ -14,37 +14,61 @@ class Loss(nn.Module):
         self.lambda_coord = lambda_coord
         self.lambda_noobj = lambda_noobj
 
-    def compute_iou(self, bbox1, bbox2):
-        """ Compute IOU of two set of boxes """
-        N = bbox1.size(0)
-        M = bbox2.size(0)
+    # def compute_iou(self, bbox1, bbox2):
+    #     """ Compute IOU of two set of boxes """
+    #     N = bbox1.size(0)
+    #     M = bbox2.size(0)
+    #
+    #     # Compute left-top coordinate of the intersections
+    #     lt = torch.max(
+    #         bbox1[:, :2].unsqueeze(1).expand(N, M, 2),  # [N, 2] -> [N, 1, 2] -> [N, M, 2]
+    #         bbox2[:, :2].unsqueeze(0).expand(N, M, 2)  # [M, 2] -> [1, M, 2] -> [N, M, 2]
+    #     )
+    #     # Conpute right-bottom coordinate of the intersections
+    #     rb = torch.min(
+    #         bbox1[:, 2:].unsqueeze(1).expand(N, M, 2),  # [N, 2] -> [N, 1, 2] -> [N, M, 2]
+    #         bbox2[:, 2:].unsqueeze(0).expand(N, M, 2)  # [M, 2] -> [1, M, 2] -> [N, M, 2]
+    #     )
+    #     # Compute area of the intersections from the coordinates
+    #     wh = rb - lt  # width and height of the intersection, [N, M, 2]
+    #     wh[wh < 0] = 0  # clip at 0
+    #     inter = wh[:, :, 0] * wh[:, :, 1]  # [N, M]
+    #
+    #     # Compute area of the bboxes
+    #     area1 = (bbox1[:, 2] - bbox1[:, 0]) * (bbox1[:, 3] - bbox1[:, 1])  # [N, ]
+    #     area2 = (bbox2[:, 2] - bbox2[:, 0]) * (bbox2[:, 3] - bbox2[:, 1])  # [M, ]
+    #     area1 = area1.unsqueeze(1).expand_as(inter)  # [N, ] -> [N, 1] -> [N, M]
+    #     area2 = area2.unsqueeze(0).expand_as(inter)  # [M, ] -> [1, M] -> [N, M]
+    #
+    #     # Compute IoU from the areas
+    #     union = area1 + area2 - inter  # [N, M, 2]
+    #     iou = inter / union  # [N, M, 2]
+    #
+    #     return iou
 
-        # Compute left-top coordinate of the intersections
-        lt = torch.max(
-            bbox1[:, :2].unsqueeze(1).expand(N, M, 2),  # [N, 2] -> [N, 1, 2] -> [N, M, 2]
-            bbox2[:, :2].unsqueeze(0).expand(N, M, 2)  # [M, 2] -> [1, M, 2] -> [N, M, 2]
-        )
-        # Conpute right-bottom coordinate of the intersections
-        rb = torch.min(
-            bbox1[:, 2:].unsqueeze(1).expand(N, M, 2),  # [N, 2] -> [N, 1, 2] -> [N, M, 2]
-            bbox2[:, 2:].unsqueeze(0).expand(N, M, 2)  # [M, 2] -> [1, M, 2] -> [N, M, 2]
-        )
-        # Compute area of the intersections from the coordinates
-        wh = rb - lt  # width and height of the intersection, [N, M, 2]
-        wh[wh < 0] = 0  # clip at 0
-        inter = wh[:, :, 0] * wh[:, :, 1]  # [N, M]
+    def compute_iou(self, box1, box2):
+        # https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
+        """
+        Return intersection-over-union (Jaccard index) of boxes.
+        Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+        Arguments:
+            box1 (Tensor[N, 4])
+            box2 (Tensor[M, 4])
+        Returns:
+            iou (Tensor[N, M]): the NxM matrix containing the pairwise
+                IoU values for every element in boxes1 and boxes2
+        """
 
-        # Compute area of the bboxes
-        area1 = (bbox1[:, 2] - bbox1[:, 0]) * (bbox1[:, 3] - bbox1[:, 1])  # [N, ]
-        area2 = (bbox2[:, 2] - bbox2[:, 0]) * (bbox2[:, 3] - bbox2[:, 1])  # [M, ]
-        area1 = area1.unsqueeze(1).expand_as(inter)  # [N, ] -> [N, 1] -> [N, M]
-        area2 = area2.unsqueeze(0).expand_as(inter)  # [M, ] -> [1, M] -> [N, M]
+        def box_area(box):
+            # box = 4xn
+            return (box[2] - box[0]) * (box[3] - box[1])
 
-        # Compute IoU from the areas
-        union = area1 + area2 - inter  # [N, M, 2]
-        iou = inter / union  # [N, M, 2]
+        area1 = box_area(box1.T)
+        area2 = box_area(box2.T)
 
-        return iou
+        # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
+        inter = (torch.min(box1[:, None, 2:], box2[:, 2:]) - torch.max(box1[:, None, :2], box2[:, :2])).clamp(0).prod(2)
+        return inter / (area1[:, None] + area2 - inter)  # iou = inter / (area1 + area2 - inter)
 
     def forward(self, prediction, target_tensor):
         """ Compute Loss for YOLO training """

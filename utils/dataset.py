@@ -25,8 +25,8 @@ class VOCDataset(Dataset):
         self.paths, self.boxes, self.labels = [], [], []
 
         for line in file_names:
-            label_path = f'{base_dir}/Labels/{line.rstrip()}.txt'
-            image_path = f'{base_dir}/Images/{line.rstrip()}.jpg'
+            label_path = f'{base_dir}/LABELS/{line.rstrip()}.txt'
+            image_path = f'{base_dir}/IMAGES/{line.rstrip()}.jpg'
             self.paths.append(image_path)
             with open(label_path) as f:
                 objects = f.readlines()
@@ -139,7 +139,6 @@ class VOCDataset(Dataset):
         scale = random.uniform(0.8, 1.2)
         h, w, _ = img.shape
         img = cv2.resize(img, dsize=(int(w * scale), h), interpolation=cv2.INTER_LINEAR)
-
         scale_tensor = torch.FloatTensor([[scale, 1.0, scale, 1.0]]).expand_as(boxes)
         boxes = boxes * scale_tensor
 

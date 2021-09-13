@@ -132,10 +132,10 @@ if __name__ == '__main__':
                    'motorbike', 'person', 'pottedplant',
                    'sheep', 'sofa', 'train', 'tvmonitor']
     # Path to the yolo weight to test.
-    model_path = 'weights/final.pth'
+    model_path = 'weights/best.pth'
 
     # Path to image dir.
-    image_dir = '../VOCDataset/Images'
+    image_dir = '../../Datasets/VOC/IMAGES'
 
     voc_class_names = list(VOC_CLASS_BGR.keys())
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     preds = defaultdict(list)
 
     print('DATA PREPARING...')
-    with open('../VOCDataset/test.txt') as f:
+    with open('../../Datasets/VOC/test.txt') as f:
         lines = f.readlines()
     image_list = []
     for line in lines:
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         image_name = f'{line}.jpg'
         image_list.append(image_name)
 
-        with open(f'../VOCDataset/Labels/{line}.txt') as f:
+        with open(f'../../Datasets/VOC/LABELS/{line}.txt') as f:
             objects = f.readlines()
 
         for object in objects:
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     print('START TESTING...')
 
     # Load YOLO model.
-    yolo = YOLODetector(model_path, conf_thresh=-1.0, prob_thresh=-1.0, nms_thresh=0.45)
+    yolo = YOLODetector(model_path, conf_thresh=-1.0, prob_thresh=-1.0, nms_thresh=0.5)
 
     # Detect objects with the model.
     progress_bar = tqdm(image_list, total=len(image_list))

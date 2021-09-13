@@ -8,10 +8,10 @@
 4. Put all images in `JPEGImages` folder in `voc2012train` and `voc2007train` to `Images` folder as following:
 ```
 ├── Dataset 
-    ├── Images
+    ├── IMAGES
         ├── 0001.jpg
         ├── 0002.jpg
-    ├── Labels
+    ├── LABELS
         ├── 0001.txt
         ├── 0002.txt
     ├── train.txt
@@ -29,14 +29,22 @@ Each label consists of class and bounding box information. e.g `0001.txt` :
 
 Implementation of [YOLOv1](https://arxiv.org/pdf/1506.02640.pdf) using PyTorch
 
-[comment]: <> (**Train:**)
+**Train:**
 
-[comment]: <> (- `python main.py`)
+```
+python main.py --base_dir ../../Datasets/VOC/ --log_dir ./weights 
+```
 
+```
+usage: main.py [-h] --base_dir BASE_DIR --log_dir LOG_DIR [--init_lr INIT_LR] [--base_lr BASE_LR] [--momentum MOMENTUM] [--weight_decay WEIGHT_DECAY] [--num_epochs NUM_EPOCHS]
+               [--batch_size BATCH_SIZE] [--seed SEED]
+```
 
-[comment]: <> (**Evaluation:**)
+**Evaluation:**
 
-[comment]: <> (- `python eval.py`)
+- `python eval.py`
 
-[comment]: <> (- In `evaluation.py`, `im_show=False` change to `True` to see the results.)
+- In `evaluation.py`, `im_show=False` change to `True` to see the results.
 
+**Detection**
+- To detect objects on image run the `detect.py` 
