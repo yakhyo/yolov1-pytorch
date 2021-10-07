@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from nets.darknet import DarkNet
+from nets.backbone import Backbone
 
 
 class YOLOv1(nn.Module):
@@ -84,8 +84,8 @@ class Flatten(nn.Module):
 
 def main():
     # Build model with randomly initialized weights
-    darknet = DarkNet(conv_only=True, bn=True, init_weight=True)
-    yolo = YOLOv1(darknet.features)
+    backbone = Backbone(conv_only=True, bn=True, init_weight=True)
+    yolo = YOLOv1(backbone.features)
 
     # Dummy image
     image = torch.randn(2, 3, 448, 448)  # torch.Size([2, 3, 448, 448])
