@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-class DarkNet(nn.Module):
+class Backbone(nn.Module):
     def __init__(self, conv_only=False, bn=True, init_weight=True):
-        super(DarkNet, self).__init__()
+        super(Backbone, self).__init__()
 
         # Make layers
         self.features = self._make_conv_bn_layers() if bn else self._make_conv_layers()
@@ -184,7 +184,7 @@ class Squeeze(nn.Module):
 
 def main():
     # Build model
-    model = DarkNet().features
+    model = Backbone().features
 
     # Dummy image
     image = torch.randn(2, 3, 448, 448)
