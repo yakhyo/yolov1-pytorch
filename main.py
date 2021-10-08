@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from utils.dataset import VOCDataset
-from nets.darknet import DarkNet
+from nets.backbone import Backbone
 from nets.yolo import YOLOv1
 from utils.loss import Loss
 
@@ -59,8 +59,8 @@ def get_lr(optimizer):
 
 
 def train():
-    darknet = DarkNet(conv_only=True, bn=True, init_weight=True)
-    darknet.features = torch.nn.DataParallel(darknet.features)
+    backbone = Backbone(conv_only=True, bn=True, init_weight=True)
+    backbone.features = torch.nn.DataParallel(backbone.features)
 
     # Load YOLO model.
     net = YOLOv1(darknet.features).to(device)
