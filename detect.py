@@ -6,7 +6,7 @@ import cv2
 import argparse
 import numpy as np
 
-from nets.darknet import DarkNet
+from nets.backbone import Backbone
 from nets.yolo import YOLOv1
 from utils.util import nms
 
@@ -73,8 +73,8 @@ class YOLODetector:
 
         # Load YOLO model.
         print("Loading YOLO model...")
-        darknet = DarkNet(conv_only=True, bn=True, init_weight=True)
-        darknet.features = torch.nn.DataParallel(darknet.features)
+        backbone = Backbone(conv_only=True, bn=True, init_weight=True)
+        backbone.features = torch.nn.DataParallel(backbone.features)
         self.yolo = YOLOv1(darknet.features)
 
         self.yolo.conv_layers = torch.nn.DataParallel(self.yolo.conv_layers)
