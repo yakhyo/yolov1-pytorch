@@ -4,7 +4,6 @@ import torch.nn.functional as F
 
 
 class Loss(nn.Module):
-
     def __init__(self, feature_size=7, num_bboxes=2, num_classes=20, lambda_coord=5.0, lambda_noobj=0.5):
         super(Loss, self).__init__()
 
@@ -14,50 +13,7 @@ class Loss(nn.Module):
         self.lambda_coord = lambda_coord
         self.lambda_noobj = lambda_noobj
 
-    # def compute_iou(self, bbox1, bbox2):
-    #     """ Compute IOU of two set of boxes """
-    #     N = bbox1.size(0)
-    #     M = bbox2.size(0)
-    #
-    #     # Compute left-top coordinate of the intersections
-    #     lt = torch.max(
-    #         bbox1[:, :2].unsqueeze(1).expand(N, M, 2),  # [N, 2] -> [N, 1, 2] -> [N, M, 2]
-    #         bbox2[:, :2].unsqueeze(0).expand(N, M, 2)  # [M, 2] -> [1, M, 2] -> [N, M, 2]
-    #     )
-    #     # Conpute right-bottom coordinate of the intersections
-    #     rb = torch.min(
-    #         bbox1[:, 2:].unsqueeze(1).expand(N, M, 2),  # [N, 2] -> [N, 1, 2] -> [N, M, 2]
-    #         bbox2[:, 2:].unsqueeze(0).expand(N, M, 2)  # [M, 2] -> [1, M, 2] -> [N, M, 2]
-    #     )
-    #     # Compute area of the intersections from the coordinates
-    #     wh = rb - lt  # width and height of the intersection, [N, M, 2]
-    #     wh[wh < 0] = 0  # clip at 0
-    #     inter = wh[:, :, 0] * wh[:, :, 1]  # [N, M]
-    #
-    #     # Compute area of the bboxes
-    #     area1 = (bbox1[:, 2] - bbox1[:, 0]) * (bbox1[:, 3] - bbox1[:, 1])  # [N, ]
-    #     area2 = (bbox2[:, 2] - bbox2[:, 0]) * (bbox2[:, 3] - bbox2[:, 1])  # [M, ]
-    #     area1 = area1.unsqueeze(1).expand_as(inter)  # [N, ] -> [N, 1] -> [N, M]
-    #     area2 = area2.unsqueeze(0).expand_as(inter)  # [M, ] -> [1, M] -> [N, M]
-    #
-    #     # Compute IoU from the areas
-    #     union = area1 + area2 - inter  # [N, M, 2]
-    #     iou = inter / union  # [N, M, 2]
-    #
-    #     return iou
-
     def compute_iou(self, box1, box2):
-        # https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
-        """
-        Return intersection-over-union (Jaccard index) of boxes.
-        Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
-        Arguments:
-            box1 (Tensor[N, 4])
-            box2 (Tensor[M, 4])
-        Returns:
-            iou (Tensor[N, M]): the NxM matrix containing the pairwise
-                IoU values for every element in boxes1 and boxes2
-        """
 
         def box_area(box):
             # box = 4xn
@@ -88,18 +44,15 @@ class Loss(nn.Module):
         bbox_pred = coord_pred[:, :5 * B].contiguous().view(-1, 5)  # [n_coord x B, 5=len([x, y, w, h, conf])]
         class_pred = coord_pred[:, 5 * B:]  # [n_coord, C]
 
-        coord_target = target_tensor[coord_mask].view(-1,
-                                                      N)  # target tensor on the cells which contain objects. [n_coord, N]
+        coord_target = target_tensor[coord_mask].view(-1, N)  # target tensor on the cells which contain objects. [n_coord, N]
         # n_coord: number of the cells which contain objects.
         bbox_target = coord_target[:, :5 * B].contiguous().view(-1, 5)  # [n_coord x B, 5=len([x, y, w, h, conf])]
         class_target = coord_target[:, 5 * B:]  # [n_coord, C]
 
         # Compute loss for the cells with no object bbox.
-        noobj_pred = prediction[noobj_mask].view(-1,
-                                                 N)  # pred tensor on the cells which do not contain objects. [n_noobj, N]
+        noobj_pred = prediction[noobj_mask].view(-1, N)  # pred tensor on the cells which do not contain objects. [n_noobj, N]
         # n_noobj: number of the cells which do not contain objects.
-        noobj_target = target_tensor[noobj_mask].view(-1,
-                                                      N)  # target tensor on the cells which do not contain objects. [n_noobj, N]
+        noobj_target = target_tensor[noobj_mask].view(-1, N)  # target tensor on the cells which do not contain objects. [n_noobj, N]
         # n_noobj: number of the cells which do not contain objects.
         noobj_conf_mask = torch.cuda.BoolTensor(noobj_pred.size()).fill_(0)  # [n_noobj, N]
         for b in range(B):
@@ -122,8 +75,7 @@ class Loss(nn.Module):
             pred_xyxy[:, :2] = pred[:, :2] / float(S) - 0.5 * pred[:, 2:4]
             pred_xyxy[:, 2:4] = pred[:, :2] / float(S) + 0.5 * pred[:, 2:4]
 
-            target = bbox_target[
-                i]  # target bbox at i-th cell. Because target boxes contained by each cell are identical in current implementation, enough to extract the first one.
+            target = bbox_target[i]  # target bbox at i-th cell. Because target boxes contained by each cell are identical in current implementation, enough to extract the first one.
             target = bbox_target[i].view(-1, 5)  # target bbox at i-th cell, [1, 5=len([x, y, w, h, conf])]
             target_xyxy = torch.FloatTensor(target.size())  # [1, 5=len([x1, y1, x2, y2, conf])]
             # Because (center_x,center_y)=target[:, 2] and (w,h)=target[:,2:4] are normalized for cell-size and image-size respectively,
@@ -145,17 +97,24 @@ class Loss(nn.Module):
 
         # BBox location/size and objectness loss for the response bboxes.
         bbox_pred_response = bbox_pred[coord_response_mask].view(-1, 5)  # [n_response, 5]
-        bbox_target_response = bbox_target[coord_response_mask].view(-1,
-                                                                     5)  # [n_response, 5], only the first 4=(x, y, w, h) are used
-        target_iou = bbox_target_iou[coord_response_mask].view(-1,
-                                                               5)  # [n_response, 5], only the last 1=(conf,) is used
-        loss_xy = F.mse_loss(bbox_pred_response[:, :2], bbox_target_response[:, :2], reduction='sum')
-        loss_wh = F.mse_loss(torch.sqrt(bbox_pred_response[:, 2:4]), torch.sqrt(bbox_target_response[:, 2:4]),
+        bbox_target_response = bbox_target[coord_response_mask].view(-1, 5)  # [n_response, 5], only the first 4=(x, y, w, h) are used
+        target_iou = bbox_target_iou[coord_response_mask].view(-1, 5)  # [n_response, 5], only the last 1=(conf,) is used
+        loss_xy = F.mse_loss(bbox_pred_response[:, :2],
+                             bbox_target_response[:, :2],
                              reduction='sum')
-        loss_obj = F.mse_loss(bbox_pred_response[:, 4], target_iou[:, 4], reduction='sum')
+
+        loss_wh = F.mse_loss(torch.sqrt(bbox_pred_response[:, 2:4]),
+                             torch.sqrt(bbox_target_response[:, 2:4]),
+                             reduction='sum')
+
+        loss_obj = F.mse_loss(bbox_pred_response[:, 4],
+                              target_iou[:, 4],
+                              reduction='sum')
 
         # Class probability loss for the cells which contain objects.
-        loss_class = F.mse_loss(class_pred, class_target, reduction='sum')
+        loss_class = F.mse_loss(class_pred,
+                                class_target,
+                                reduction='sum')
 
         # Total loss
         loss = self.lambda_coord * (loss_xy + loss_wh) + loss_obj + self.lambda_noobj * loss_noobj + loss_class
