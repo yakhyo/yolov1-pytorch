@@ -2,8 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from utils.dataset import VOCDataset
-from nets.backbone import Backbone
-from nets.yolo import YOLOv1
+from nets.nn import YOLOv1
 from utils.loss import Loss
 
 import os
@@ -14,13 +13,13 @@ import numpy as np
 from collections import defaultdict
 
 parser = argparse.ArgumentParser(description='YOLOv1 implementation using PyTorch')
-parser.add_argument('--base_dir', default='../../Datasets/VOC/', required=True, help='Path to data dir')
-parser.add_argument('--log_dir', default='./weights', required=True, help='Path to save weights')
+parser.add_argument('--base_dir', default='../../Datasets/VOC/', required=False, help='Path to data dir')
+parser.add_argument('--log_dir', default='./weights', required=False, help='Path to save weights')
 parser.add_argument('--init_lr', default=0.001, required=False, help='Initial learning rate')
 parser.add_argument('--base_lr', default=0.01, required=False, help='Base learning rate')
 parser.add_argument('--momentum', default=0.9, required=False, help='Momentum')
 parser.add_argument('--weight_decay', default=5.0e-4, required=False, help='Weight decay')
-parser.add_argument('--num_epochs', default=300, required=False, help='Number of epochs')
+parser.add_argument('--num_epochs', default=135, required=False, help='Number of epochs')
 parser.add_argument('--batch_size', default=64, required=False, help='Batch size')
 parser.add_argument('--seed', default=42, required=False, help='Random seed')
 
@@ -59,12 +58,9 @@ def get_lr(optimizer):
 
 
 def train():
-    backbone = Backbone(conv_only=True, bn=True, init_weight=True)
-    backbone.features = torch.nn.DataParallel(backbone.features)
-
     # Load YOLO model.
-    net = YOLOv1(darknet.features).to(device)
-    net.conv_layers = torch.nn.DataParallel(net.conv_layers)
+    net = YOLOv1().to(device)
+    net = torch.nn.DataParallel(net)
 
     accumulate = max(round(64 / args.batch_size), 1)
 
@@ -86,7 +82,7 @@ def train():
     optimizer.add_param_group({'params': pg2})
 
     # Setup loss and optimizer.
-    criterion = Loss(feature_size=net.feature_size)
+    criterion = Loss()
 
     # Load Pascal-VOC dataset.
     with open(f'{args.base_dir}/train.txt') as f:

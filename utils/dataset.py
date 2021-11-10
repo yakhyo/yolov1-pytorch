@@ -25,8 +25,8 @@ class VOCDataset(Dataset):
         self.paths, self.boxes, self.labels = [], [], []
 
         for line in file_names:
-            label_path = f'{base_dir}/LABELS/{line.rstrip()}.txt'
-            image_path = f'{base_dir}/IMAGES/{line.rstrip()}.jpg'
+            label_path = f"{base_dir}/{'train' if is_train else 'test'}/LABELS/{line.rstrip()}.txt"
+            image_path = f"{base_dir}/{'train' if is_train else 'test'}/IMAGES/{line.rstrip()}.jpg"
             self.paths.append(image_path)
             with open(label_path) as f:
                 objects = f.readlines()
@@ -48,8 +48,8 @@ class VOCDataset(Dataset):
         labels = self.labels[idx].clone()  # [n,]
 
         if self.is_train:
-            img, boxes = self.random_flip(img, boxes)
-            img, boxes = self.random_scale(img, boxes)
+            # img, boxes = self.random_flip(img, boxes)
+            # img, boxes = self.random_scale(img, boxes)
 
             img = self.random_blur(img)
             img = self.random_brightness(img)
@@ -280,7 +280,7 @@ class VOCDataset(Dataset):
 def test():
     from torch.utils.data import DataLoader
 
-    base_dir = '../../VOCDataset'
+    base_dir = '../../../Datasets/VOC'
     label_txt = 'train.txt'
 
     with open(f'{base_dir}/{label_txt}') as f:

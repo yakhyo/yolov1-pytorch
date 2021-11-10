@@ -4,12 +4,12 @@ import torch.nn.functional as F
 
 
 class Loss(nn.Module):
-    def __init__(self, feature_size=7, num_bboxes=2, num_classes=20, lambda_coord=5.0, lambda_noobj=0.5):
+    def __init__(self, fs=7, nb=2, nc=20, lambda_coord=5.0, lambda_noobj=0.5):
         super(Loss, self).__init__()
 
-        self.S = feature_size
-        self.B = num_bboxes
-        self.C = num_classes
+        self.FS = fs
+        self.NB = nb
+        self.NC = nc
         self.lambda_coord = lambda_coord
         self.lambda_noobj = lambda_noobj
 
@@ -30,7 +30,7 @@ class Loss(nn.Module):
         """ Compute Loss for YOLO training """
         # TODO: Remove redundant dimensions for some Tensors.
 
-        S, B, C = self.S, self.B, self.C
+        S, B, C = self.FS, self.NB, self.NC
         N = 5 * B + C  # 5=len([x, y, w, h, conf]
 
         batch_size = prediction.size(0)

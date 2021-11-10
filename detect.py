@@ -6,9 +6,8 @@ import cv2
 import argparse
 import numpy as np
 
-from nets.backbone import Backbone
-from nets.yolo import YOLOv1
-from utils.util import nms
+from nets.nn import YOLOv1
+from utils.utils import nms
 
 # VOC class names and BGR color.
 VOC_CLASS_BGR = {
@@ -73,11 +72,9 @@ class YOLODetector:
 
         # Load YOLO model.
         print("Loading YOLO model...")
-        backbone = Backbone(conv_only=True, bn=True, init_weight=True)
-        backbone.features = torch.nn.DataParallel(backbone.features)
-        self.yolo = YOLOv1(darknet.features)
+        yolo = YOLOv1()
 
-        self.yolo.conv_layers = torch.nn.DataParallel(self.yolo.conv_layers)
+        self.yolo = torch.nn.DataParallel(yolo)
         self.yolo.load_state_dict(torch.load(model_path)['state_dict'])
         self.yolo.cuda()
         if torch.cuda.device_count() > 1:
@@ -86,9 +83,9 @@ class YOLODetector:
 
         self.yolo.eval()
 
-        self.S = self.yolo.module.feature_size
-        self.B = self.yolo.module.num_bboxes
-        self.C = self.yolo.module.num_classes
+        self.S = self.yolo.module.module.FS
+        self.B = self.yolo.module.module.NB
+        self.C = self.yolo.module.module.NC
 
         self.class_name_list = class_name_list if (class_name_list is not None) else list(VOC_CLASS_BGR.keys())
         assert len(self.class_name_list) == self.C
@@ -109,15 +106,6 @@ class YOLODetector:
             self.yolo(dummy_input)
 
     def detect(self, image_bgr, image_size=448):
-        """ Detect objects from given image.
-        Args:
-            image_bgr: (numpy array) input image in BGR ids_sorted, sized [h, w, 3].
-            image_size: (int) image width and height to which input image is resized.
-        Returns:
-            boxes_detected: (list of tuple) box corner list like [((x1, y1), (x2, y2))_obj1, ...]. Re-scaled for original input image size.
-            class_names_detected: (list of str) list of class name for each detected boxe.
-            probs_detected: (list of float) list of probability(=confidence x class_score) for each detected box.
-        """
         h, w, _ = image_bgr.shape
         img = cv2.resize(image_bgr, dsize=(image_size, image_size), interpolation=cv2.INTER_LINEAR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # assuming the model is trained with RGB images.
@@ -180,15 +168,7 @@ class YOLODetector:
         return boxes_detected, class_names_detected, probs_detected
 
     def decode(self, pred_tensor):
-        """ Decode tensor into box coordinates, class labels, and probs_detected.
-        Args:
-            pred_tensor: (tensor) tensor to decode sized [S, S, 5 x B + C], 5=(x, y, w, h, conf)
-        Returns:
-            boxes: (tensor) [[x1, y1, x2, y2]_obj1, ...]. Normalized from 0.0 to 1.0 w.r.t. image width/height, sized [n_boxes, 4].
-            labels: (tensor) class labels for each detected boxe, sized [n_boxes,].
-            confidences: (tensor) objectness confidences for each detected box, sized [n_boxes,].
-            class_scores: (tensor) scores for most likely class for each detected box, sized [n_boxes,].
-        """
+
         S, B, C = self.S, self.B, self.C
         boxes, labels, confidences, class_scores = [], [], [], []
 
@@ -247,7 +227,7 @@ if __name__ == '__main__':
     # Paths to input/output images.
     parser = argparse.ArgumentParser(description='YOLOv1 implementation using PyTorch')
     parser.add_argument('--weight', default='weights/final.pth', help='Model path')
-    parser.add_argument('--in_path', default='../../Datasets/VOC/IMAGES/001006.jpg', help='Input image path')
+    parser.add_argument('--in_path', default='../../Datasets/VOC/test/IMAGES/000001.jpg', help='Input image path')
     parser.add_argument('--out_path', default='result.jpg', help='Output image path')
 
     args = parser.parse_args()
