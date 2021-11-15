@@ -59,7 +59,7 @@ def get_lr(optimizer):
 
 def train():
     # Load YOLO model.
-    net = YOLOv1().to(device)
+    net = YOLOv1(pretrained_backbone=True).to(device)
     net = torch.nn.DataParallel(net)
 
     accumulate = max(round(64 / args.batch_size), 1)
