@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # Paths to input/output images.
     parser = argparse.ArgumentParser(description='YOLOv1 implementation using PyTorch')
     parser.add_argument('--weight', default='weights/final.pth', help='Model path')
-    parser.add_argument('--in_path', default='../../Datasets/VOC/test/IMAGES/000001.jpg', help='Input image path')
+    parser.add_argument('--in_path', default='../../Datasets/VOC/test/IMAGES/000004.jpg', help='Input image path')
     parser.add_argument('--out_path', default='result.jpg', help='Output image path')
 
     args = parser.parse_args()
@@ -235,7 +235,7 @@ if __name__ == '__main__':
     gpu_id = 0
 
     # Load model.
-    yolo = YOLODetector(args.weight, conf_thresh=0.1, prob_thresh=0.1, nms_thresh=0.35)
+    yolo = YOLODetector(args.weight, conf_thresh=0.6, prob_thresh=0.6, nms_thresh=0.35)
 
     # Load image.
     image = cv2.imread(args.in_path)
