@@ -1,5 +1,9 @@
 ### YOLO v1 using PyTorch
 
+<div align="center">
+<img src="/results/res_1.jpg"/>
+<img src="/results/res_2.jpg"/>
+</div>
 
 **Dataset:**
 1. Download `voc2012train` [dataset](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar)
