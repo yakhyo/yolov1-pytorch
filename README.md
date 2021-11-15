@@ -35,6 +35,8 @@ Implementation of [YOLOv1](https://arxiv.org/pdf/1506.02640.pdf) using PyTorch
 
 **Train:**
 
+**Note**: I trained the backbone on IMAGENET, around ~ 10 epochs, not sure how many it was but less then 20 
+
 ```
 python main.py --base_dir ../../Datasets/VOC/ --log_dir ./weights 
 ```
