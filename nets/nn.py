@@ -81,10 +81,11 @@ class HEAD(nn.Module):
 
         self.detect = nn.Sequential(
             Flatten(),
-            nn.Linear(7 * 7 * 1024, 2048),  # 7 * 7 * 1024, 4096
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Dropout(0.5, inplace=False),
-            nn.Linear(2048, fs * fs * (5 * nb + nc)),  # 4096, s * s * (5 * b + c)
+            nn.Linear(7 * 7 * 1024, 4096),  # 7 * 7 * 1024, 4096
+            nn.LeakyReLU(0.01, inplace=True),
+            nn.Dropout(0.5),
+
+            nn.Linear(4096, fs * fs * (5 * nb + nc)),  # 4096, s * s * (5 * b + c)
             nn.Sigmoid()
         )
 
@@ -95,13 +96,27 @@ class HEAD(nn.Module):
 
 
 class YOLOv1(nn.Module):
-    def __init__(self, fs=7, nb=2, nc=20):
+    def __init__(self, fs=7, nb=2, nc=20, pretrained_backbone=False):
         super(YOLOv1, self).__init__()
 
         self.FS = fs
         self.NB = nb
         self.NC = nc
-        self.features = BACKBONE().features
+        if pretrained_backbone:
+
+            self.features = BACKBONE().features
+            darknet = BACKBONE()
+            darknet = nn.DataParallel(darknet)
+            src_state_dict = torch.load('model_best.pth.tar')['state_dict']
+            dst_state_dict = darknet.state_dict()
+
+            for k in dst_state_dict.keys():
+                print('Loading weight of', k)
+                dst_state_dict[k] = src_state_dict[k]
+            darknet.load_state_dict(dst_state_dict)
+            self.features = darknet.module.features
+        else:
+            self.features = BACKBONE().features
         self.head = HEAD(self.FS, self.NB, self.NC)
 
     def forward(self, x):
