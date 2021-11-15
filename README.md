@@ -46,5 +46,30 @@ usage: main.py [-h] --base_dir BASE_DIR --log_dir LOG_DIR [--init_lr INIT_LR] [-
 
 - In `evaluation.py`, `im_show=False` change to `True` to see the results.
 
+```
+Evaluate the detection result...
+aeroplane                 0.57
+bicycle                   0.46
+bird                      0.38
+boat                      0.25
+bottle                    0.14
+bus                       0.53
+car                       0.48
+cat                       0.61
+chair                     0.18
+cow                       0.34
+diningtable               0.44
+dog                       0.52
+horse                     0.52
+motorbike                 0.49
+person                    0.49
+pottedplant               0.21
+sheep                     0.43
+sofa                      0.38
+train                     0.69
+tvmonitor                 0.40
+mAP 0.426056536787907
+```
+
 **Detection**
 - To detect objects on an image run the `detect.py` 
