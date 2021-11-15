@@ -48,8 +48,8 @@ class VOCDataset(Dataset):
         labels = self.labels[idx].clone()  # [n,]
 
         if self.is_train:
-            # img, boxes = self.random_flip(img, boxes)
-            # img, boxes = self.random_scale(img, boxes)
+            img, boxes = self.random_flip(img, boxes)
+            img, boxes = self.random_scale(img, boxes)
 
             img = self.random_blur(img)
             img = self.random_brightness(img)
