@@ -1,3 +1,7 @@
+"""
+@author: Yakhyokhuja Valikhujaev <yakhyo9696@gmail.com>
+"""
+
 import torch
 import torch.nn as nn
 from utils.utils import GlobalAvgPool2d, Conv, Flatten
