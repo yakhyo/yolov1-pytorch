@@ -4,7 +4,48 @@
 
 import torch
 import torch.nn as nn
-from utils.utils import GlobalAvgPool2d, Conv, Flatten
+from utils.utils import GlobalAvgPool2d, Flatten
+from typing import Optional
+
+
+def auto_pad(kernel_size: int, padding: int):
+    if padding is None:
+        padding = kernel_size // 2
+    return padding
+
+
+class Conv(nn.Module):
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            kernel_size: int,
+            stride: Optional[int] = 1,
+            padding: Optional[int] = None,
+            dilation: Optional[int] = 1,
+            groups: Optional[int] = 1,
+            act: Optional[bool] = True
+    ) -> None:
+        super(Conv, self).__init__()
+        self.conv = nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=auto_pad(kernel_size, padding),
+            dilation=dilation,
+            groups=groups,
+            bias=False
+        )
+        self.bn = nn.BatchNorm2d(out_channels, momentum=0.03, eps=1e-3)
+        self.act = nn.LeakyReLU(0.01, inplace=True) if act else nn.ReLU(inplace=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.act(x)
+
+        return x
 
 
 class BACKBONE(nn.Module):
