@@ -1,8 +1,8 @@
 ### YOLO v1 using PyTorch
 
 <div align="center">
-<img src="/results/res_1.jpg" height="280px"/>
-<img src="/results/res_2.jpg" height="280px"/>
+<img src="results/res_1.jpg" height="280px"/>
+<img src="results/res_2.jpg" height="280px"/>
 </div>
 
 **Dataset:**
