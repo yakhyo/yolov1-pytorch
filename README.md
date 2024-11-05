@@ -1,4 +1,6 @@
-### YOLO v1 using PyTorch
+## YOLO v1 using PyTorch
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/yakhyo/yolov1-pytorch)](https://github.com/yakhyo/yolov1-pytorch/stargazers)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/yakhyo/yolov1-pytorch)
 
 <div align="center">
